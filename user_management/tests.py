@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from .models import User
+from .serializers import UserProfileSerializer
 
 class UserRegistrationTest(APITestCase):
 
@@ -96,3 +97,38 @@ class UserLoginTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('Invalid credentials', str(response.data))
+        
+
+class UserProfileViewTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email='activeuser@example.com',
+            nickname='ActiveUser',
+            password='password123',
+            is_active=True
+        )
+
+    def get_user_profile_url(self, user_id):
+        return reverse('user-profile', kwargs={'user_id': user_id})
+
+    def test_retrieve_user_profile(self):
+        url = self.get_user_profile_url(self.user.id)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        serializer = UserProfileSerializer(self.user)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_retrieve_nonexistent_user_profile(self):
+        url = self.get_user_profile_url(9999)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_response_contains_expected_fields(self):
+        url = self.get_user_profile_url(self.user.id)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        expected_fields = {'email', 'nickname', 'avatar'}
+        self.assertEqual(set(response.data.keys()), expected_fields)

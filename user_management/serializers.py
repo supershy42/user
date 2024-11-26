@@ -95,7 +95,7 @@ class UserLoginSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'nickname', 'avatar', 'date_joined']
+        fields = ['email', 'nickname', 'avatar']
 
 
 class FriendSerializer(serializers.ModelSerializer):
