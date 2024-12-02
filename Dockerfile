@@ -1,4 +1,4 @@
-# srcs/user_management/Dockerfile
+# srcs/user/Dockerfile
 
 # Python 이미지 사용
 FROM python:3.9-slim
@@ -11,7 +11,7 @@ COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
 # 애플리케이션 코드 복사
-COPY ./myproject ./app
+COPY ./config ./app
 
 # Django 서버 실행
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
