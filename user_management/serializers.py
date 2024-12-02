@@ -31,6 +31,23 @@ class UserRegistrationSerializer(serializers.Serializer):
         return value
 
 
+class EmailVerifyRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    
+    def validate(self, attrs):
+        email = attrs.get('email')
+        
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({"email": "This email is not registered."})
+        
+        if user.is_active:
+            raise serializers.ValidationError({"email": "This account is arleady active."})
+        
+        return attrs
+
+
 class EmailVerificationSerializer(serializers.Serializer):
     email = serializers.EmailField()
     code = serializers.CharField(max_length=6)
@@ -40,11 +57,11 @@ class EmailVerificationSerializer(serializers.Serializer):
         code = attrs.get('code')
         try:
             user = User.objects.get(email=email)
-            verification_record = EmailVerificationCode.objects.get(user=user, code=code, is_used=False)
+            verification_record = EmailVerificationCode.objects.get(email=email, code=code, is_used=False)
         except (User.DoesNotExist, EmailVerificationCode.DoesNotExist):
             raise serializers.ValidationError("Invalid verification code or email.")
 
-        if verification_record.is_expired():
+        if verification_record.is_expired:
             raise serializers.ValidationError("The verification code has expired.")
 
         attrs['user'] = user
