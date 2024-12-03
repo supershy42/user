@@ -38,11 +38,18 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class EmailVerificationCode(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='verification_codes')
+    email = models.EmailField()
     code = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
     
+    @property
     def is_expired(self):
+        if self.is_used:
+            return True
         expiration_time = self.created_at + timedelta(minutes=5)  # 생성 후 5분 뒤 만료
         return timezone.now() > expiration_time
+    
+    def set_expired(self):
+        self.is_used = True
+        self.save()
