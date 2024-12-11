@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.exceptions import ValidationError
+from config.custom_validation_error import CustomValidationError
+from rest_framework import status
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import check_password
 from .models import User, EmailVerificationCode
 from .services import process_email_verification_code
+from config.error_type import ErrorType
 
 
 class NicknameCheckSerializer(serializers.Serializer):
@@ -12,7 +14,7 @@ class NicknameCheckSerializer(serializers.Serializer):
     
     def validate_nickname(self, value):
         if User.objects.filter(nickname=value).exists():
-            raise serializers.ValidationError("This nickname is already in use.")
+            raise CustomValidationError(ErrorType.CONFLICT_NICKNAME)
         return value
 
 
@@ -42,8 +44,7 @@ class UserRegisterSerializer(serializers.Serializer):
         try:
             verification_record = EmailVerificationCode.objects.get(email=email, code=code)
         except EmailVerificationCode.DoesNotExist:
-            raise serializers.ValidationError({"code": "Invalid or expired verification code."})
-
+            raise serializers.ValidationError({"message": "Invalid or expired verification code."})
         if verification_record.is_expired:
             raise serializers.ValidationError({"code": "The verification code has expired."})
 

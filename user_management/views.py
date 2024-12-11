@@ -1,6 +1,4 @@
 from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from .serializers import (
     EmailCheckAndSendCodeSerializer,
     NicknameCheckSerializer,
@@ -10,14 +8,15 @@ from .serializers import (
     )
 from django.shortcuts import get_object_or_404
 from .models import User
+from config.response_builder import response_ok, response_error
 
 
 class NicknameCheckView(APIView):
     def post(self, request):
         serializer = NicknameCheckSerializer(data=request.data)
         if serializer.is_valid():
-            return Response({"message": "This nickname is available."}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return response_ok("This nickname is available.")
+        return response_error(serializer.errors)
 
 
 class EmailCheckAndSendCodeView(APIView):
@@ -25,17 +24,17 @@ class EmailCheckAndSendCodeView(APIView):
         serializer = EmailCheckAndSendCodeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Verification code sent."}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+            return response_ok("Verification code sent.")
+        return response_error(serializer.errors)
+
 
 class UserRegisterView(APIView):
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Regstration successful."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return response_ok("Regstration successful.")
+        return response_error(serializer.errors)
 
 
 class UserLoginView(APIView):
@@ -43,11 +42,12 @@ class UserLoginView(APIView):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             auth_data = serializer.save()
-            return Response(auth_data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+            return response_ok(auth_data)
+        return response_error(serializer.errors)
+
+
 class UserProfileView(APIView):
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         serializer = UserProfileSerializer(user)
-        return Response(serializer.data)
+        return response_ok(serializer.data)
