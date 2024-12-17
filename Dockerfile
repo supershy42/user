@@ -10,8 +10,11 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
+COPY ./utils/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # 애플리케이션 코드 복사
 COPY ./config ./app
 
 # Django 서버 실행
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
