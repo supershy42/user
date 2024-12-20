@@ -138,3 +138,8 @@ CHANNEL_LAYERS = {
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
+
+# ENV
+from decouple import config
+
+CHAT_SERVICE = config("CHAT_SERVICE")

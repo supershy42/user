@@ -1,13 +1,16 @@
+import asyncio
 from .models import FriendRequest, Friendship
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError, NotFound
 from django.db.models import Q
+from config.services import get_chatroom
 
 User = get_user_model()
 
 # 친구 요청 보내기
-def send_friend_request(from_user, to_user_id):
+def send_friend_request(from_user_id, to_user_id):
     try:
+        from_user = User.objects.get(id=from_user_id)
         to_user = User.objects.get(id=to_user_id)
     except User.DoesNotExist:
         raise NotFound("User not found.")
@@ -25,7 +28,7 @@ def send_friend_request(from_user, to_user_id):
 
 
 # 친구 요청 응답 처리
-def respond_to_friend_request(request_id, action):
+def respond_to_friend_request(request_id, action, user_token):
     try:
         friend_request = FriendRequest.objects.get(id=request_id, status="pending")
     except FriendRequest.DoesNotExist:
@@ -39,6 +42,9 @@ def respond_to_friend_request(request_id, action):
             user1=friend_request.from_user,
             user2=friend_request.to_user
         )
+
+        # 채팅방 생성 호출
+        asyncio.run(get_chatroom(friend_request.from_user.id, friend_request.to_user.id, user_token))
 
     elif action == "reject":
         friend_request.status = "rejected"

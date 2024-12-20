@@ -17,13 +17,15 @@ class CustomHttpMiddleware(MiddlewareMixin):
         if request.path in EXCLUDED_PATHS:  # 제외된 경로 처리
             return
 
-        token = request.headers.get("Authorization")
-        if not token:
+        token_line = request.headers.get("Authorization")
+        if not token_line:
             return JsonResponse({"error": "Authentication token missing."}, status=401)
-        
+
         try:
             # JWT 디코딩 및 user_id 추출
-            payload = jwt.decode(token.split(" ")[1], options={"verify_signature": False})
+            token = token_line.split(" ")[1]
+            request.token = token
+            payload = jwt.decode(token, options={"verify_signature": False})
             request.user_id = payload.get("user_id")
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=401)
