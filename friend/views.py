@@ -4,13 +4,14 @@ from rest_framework import status
 from .services import send_friend_request, respond_to_friend_request, get_friends_list
 from rest_framework.exceptions import ValidationError, NotFound
 from drf_spectacular.utils import extend_schema
+from asgiref.sync import async_to_sync
 
 
 class SendFriendRequestView(APIView):
     def post(self, request):
         to_user_id = request.data.get('to_user_id')
         try:
-            send_friend_request(request.user_id, to_user_id)
+            async_to_sync(send_friend_request)(request.user_id, to_user_id)
             return Response({"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED)
         except ValidationError as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
