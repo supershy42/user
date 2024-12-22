@@ -1,18 +1,26 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
+from .custom_validation_error import CustomValidationError
 
 def response_ok(message="ok", status=status.HTTP_200_OK):
     if not isinstance(message, dict):
         message = {"message": message}
     return Response(message, status=status)
 
-def response_error(errors):
+def response_errors(errors):
     if not errors:
         errors = "unknown error."
     return Response(
         {"message": errors},
         status=extract_status(errors)
+    )
+    
+def response_error(custom_validation_error:CustomValidationError):
+    error_type = custom_validation_error.error_type
+    return Response(
+        {"message": error_type.message},
+        status=error_type.status
     )
 
 def extract_status(errors):
