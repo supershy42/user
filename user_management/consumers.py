@@ -58,6 +58,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def tournament_start(self, event):
         await self.send_json(event)
 
+    async def friend_request(self, event):
+        await self.send_json(event)
+
     # 메시지를 그룹에 브로드캐스트
     async def broadcast_message(self, notification_type, content):
         await self.channel_layer.group_send(

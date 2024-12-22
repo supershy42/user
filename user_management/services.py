@@ -7,6 +7,10 @@ from .models import EmailVerificationCode
 
 User = get_user_model()
 
+async def get_user_name(user_id):
+    user = await User.objects.aget(id=user_id)
+    return user.nickname
+
 def generate_verification_code(length=6):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
