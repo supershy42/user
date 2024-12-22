@@ -1,9 +1,9 @@
 import aiohttp
-from config.settings import CHAT_SERVICE
+from config.settings import CHAT_SERVICE_URL
 
 # 채팅 서비스의 채팅방 생성 API 호출
 async def get_chatroom(user1_id, user2_id, token):
-    request_url = f'{CHAT_SERVICE}create/'
+    request_url = f'{CHAT_SERVICE_URL}create/'
     headers  = {'Authorization': f'Bearer {token}'}
     payload = {"user1_id": user1_id, "user2_id": user2_id}
     
