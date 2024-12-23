@@ -120,8 +120,8 @@ def delete_friend(user_id, friend_id, token):
         friendrequest.delete()
 
     # ChatRoom 삭제 API 호출
-    result = async_to_sync(delete_chatroom)(friend.id, token)
-    if not result:
+    is_chatroom_deleted = async_to_sync(delete_chatroom)(friendship.chatroom_id, token)
+    if not is_chatroom_deleted:
         raise ValidationError("Chatroom deletion failed.")
 
     friendship.delete()
