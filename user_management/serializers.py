@@ -1,61 +1,63 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.exceptions import ValidationError
+from config.custom_validation_error import CustomValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import check_password
 from .models import User, EmailVerificationCode
-from .services import register_user
+from .services import process_email_verification_code
+from config.error_type import ErrorType
 
 
-class UserRegistrationSerializer(serializers.Serializer):
+class NicknameCheckSerializer(serializers.Serializer):
     nickname = serializers.CharField(max_length=30)
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, validators=[validate_password])
-
-    def create(self, validated_data):
-        user = register_user(
-            nickname=validated_data['nickname'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
-        return user
-
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with that email already exists.")
-        return value
-
+    
     def validate_nickname(self, value):
         if User.objects.filter(nickname=value).exists():
-            raise serializers.ValidationError("This nickname is already taken.")
+            raise CustomValidationError(ErrorType.NICKNAME_ALREADY_EXISTS)
         return value
 
 
-class EmailVerificationSerializer(serializers.Serializer):
+class EmailCheckAndSendCodeSerializer(serializers.Serializer):
     email = serializers.EmailField()
+    
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise CustomValidationError(ErrorType.EMAIL_ALREADY_EXISTS)
+        return value
+    
+    def save(self):
+        email = self.validated_data['email']
+        process_email_verification_code(email)
+
+
+class UserRegisterSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    nickname = serializers.CharField(max_length=30)
+    password = serializers.CharField(write_only=True, validators=[validate_password])
     code = serializers.CharField(max_length=6)
 
     def validate(self, attrs):
         email = attrs.get('email')
         code = attrs.get('code')
+        
         try:
-            user = User.objects.get(email=email)
-            verification_record = EmailVerificationCode.objects.get(user=user, code=code, is_used=False)
-        except (User.DoesNotExist, EmailVerificationCode.DoesNotExist):
-            raise serializers.ValidationError("Invalid verification code or email.")
+            verification_record = EmailVerificationCode.objects.get(email=email, code=code)
+        except EmailVerificationCode.DoesNotExist:
+            raise CustomValidationError(ErrorType.INVALID_VERIFICATION_CODE)
+        if verification_record.is_expired:
+            raise CustomValidationError(ErrorType.VERIFICATION_CODE_EXPIRED)
 
-        if verification_record.is_expired():
-            raise serializers.ValidationError("The verification code has expired.")
-
-        attrs['user'] = user
         attrs['verification_record'] = verification_record
         return attrs
 
-    def save(self):
-        user = self.validated_data['user']
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            email=validated_data['email'],
+            nickname=validated_data['nickname'],
+            password=validated_data['password']
+        )
+        
         verification_record = self.validated_data['verification_record']
-        user.is_active = True
-        user.save()
         verification_record.is_used = True
         verification_record.save()
         return user
@@ -72,10 +74,10 @@ class UserLoginSerializer(serializers.Serializer):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError("Invalid credentials.")
+            raise CustomValidationError(ErrorType.INVALID_CREDENTIALS)
 
         if not check_password(password, user.password):
-            raise serializers.ValidationError("Invalid credentials.")
+            raise CustomValidationError(ErrorType.INVALID_CREDENTIALS)
 
         attrs['user'] = user
         return attrs
@@ -95,8 +97,8 @@ class UserLoginSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'nickname', 'avatar']
-
+        fields = ['id', 'email', 'nickname', 'avatar']
+        
 
 class FriendSerializer(serializers.ModelSerializer):
     class Meta:

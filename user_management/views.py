@@ -1,37 +1,54 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .serializers import UserRegistrationSerializer, EmailVerificationSerializer, UserLoginSerializer, UserProfileSerializer
 from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from .serializers import (
+    EmailCheckAndSendCodeSerializer,
+    NicknameCheckSerializer,
+    UserRegisterSerializer,
+    UserLoginSerializer,
+    UserProfileSerializer
+    )
+from config.response_builder import response_ok, response_error
 from .models import User
+from rest_framework import status
 
-class UserRegistrationView(APIView):
+
+class NicknameCheckView(APIView):
     def post(self, request):
-        serializer = UserRegistrationSerializer(data=request.data)
+        serializer = NicknameCheckSerializer(data=request.data)
+        if serializer.is_valid():
+            return response_ok()
+        return response_error(serializer.errors)
+
+
+class EmailCheckAndSendCodeView(APIView):
+    def post(self, request):
+        serializer = EmailCheckAndSendCodeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Registration successful. Please check your email for the verification code."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-class EmailVerificationView(APIView):
+            return response_ok(message="Verification code sent")
+        return response_error(serializer.errors)
+
+
+class UserRegisterView(APIView):
     def post(self, request):
-        serializer = EmailVerificationSerializer(data=request.data)
+        serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Email verification successful."}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return response_ok(status=status.HTTP_201_CREATED)
+        return response_error(serializer.errors)
+
 
 class UserLoginView(APIView):
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
-            tokens = serializer.save()
-            return Response(tokens, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+            auth_data = serializer.save()
+            return response_ok(auth_data)
+        return response_error(serializer.errors)
+
+
 class UserProfileView(APIView):
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         serializer = UserProfileSerializer(user)
-        return Response(serializer.data)
-    
+        return response_ok(serializer.data)

@@ -28,7 +28,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     nickname = models.CharField(max_length=30, unique=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
-    is_active = models.BooleanField(default=False) # 이메일 인증 완료 후 활성화
     is_staff = models.BooleanField(default=False)
 
     objects = UserManager()
@@ -38,11 +37,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class EmailVerificationCode(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='verification_codes')
+    email = models.EmailField()
     code = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
     
+    @property
     def is_expired(self):
+        if self.is_used:
+            return True
         expiration_time = self.created_at + timedelta(minutes=5)  # 생성 후 5분 뒤 만료
         return timezone.now() > expiration_time
