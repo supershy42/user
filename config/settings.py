@@ -142,4 +142,4 @@ CORS_ALLOW_ALL_ORIGINS = True
 # ENV
 from decouple import config
 
-CHAT_SERVICE = config("CHAT_SERVICE")
+CHAT_SERVICE_URL = config("CHAT_SERVICE_URL")
