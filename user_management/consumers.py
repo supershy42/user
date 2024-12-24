@@ -55,7 +55,10 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def reception_invitation(self, event):
         await self.send_json(event)
         
-    async def tournament_start(self, event):
+    async def tournament_round_start(self, event):
+        await self.send_json(event)
+        
+    async def tournament_end(self, event):
         await self.send_json(event)
 
     async def friend_request(self, event):

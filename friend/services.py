@@ -1,4 +1,3 @@
-import asyncio
 from .models import FriendRequest, Friendship
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError, NotFound
@@ -6,7 +5,7 @@ from django.db.models import Q
 from config.services import get_chatroom, delete_chatroom
 from channels.layers import get_channel_layer
 from user_management.redis_utils import get_channel_name
-from user_management.services import get_user_name
+from user_management.services import UserService
 from asgiref.sync import async_to_sync
 from django.db import transaction
 
@@ -41,7 +40,7 @@ async def send_friend_request_notification(from_user_id, to_user_id, created_at)
     if not channel_name:
         raise ValidationError("User is not online.")
 
-    sender = await get_user_name(from_user_id)
+    sender = await UserService.get_user_name(from_user_id)
     created_at_str = created_at.isoformat()
     await channel_layer.send(
         channel_name,

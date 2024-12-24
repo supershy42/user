@@ -5,6 +5,7 @@ from .views import (
     UserRegisterView,
     UserLoginView,
     UserProfileView,
+    SendEmailView,
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path('register/complete/', UserRegisterView.as_view(), name='register-complete'),
     path('login/', UserLoginView.as_view(), name='login'),
     path('profile/<int:user_id>/', UserProfileView.as_view(), name='user-profile'),
+    path('send-email/', SendEmailView.as_view(), name='send-email')
 ]
