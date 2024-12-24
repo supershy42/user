@@ -65,9 +65,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_USER_NAME'),
+        'USER': os.getenv('DB_USER_USER'),
+        'PASSWORD': os.getenv('DB_USER_PASSWORD'),
+        'HOST': 'database_user',  # Docker Compose에서 정의한 서비스 이름
+        'PORT': '5432',
     }
 }
 
