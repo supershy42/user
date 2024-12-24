@@ -31,6 +31,7 @@ class FriendRequest(models.Model):
 class Friendship(models.Model):
     user1 = models.ForeignKey(User, related_name="friends_from", on_delete=models.CASCADE)
     user2 = models.ForeignKey(User, related_name="friends_to", on_delete=models.CASCADE)
+    chatroom_id = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
     
     class Meta:

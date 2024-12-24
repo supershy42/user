@@ -1,10 +1,15 @@
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .services import send_friend_request, respond_to_friend_request, get_friends_list
 from rest_framework.exceptions import ValidationError, NotFound
 from drf_spectacular.utils import extend_schema
 from asgiref.sync import async_to_sync
+from rest_framework.views import APIView
+from .services import (
+    send_friend_request,
+    respond_to_friend_request,
+    get_friends_list,
+    delete_friend
+)
 
 
 class SendFriendRequestView(APIView):
@@ -52,3 +57,15 @@ class FriendListView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         return Response(friends, status=status.HTTP_200_OK)
+
+
+class DeleteFriendView(APIView):
+    def post(self, request):
+        friend_id = request.data.get('friend_id')
+        try:
+            delete_friend(request.user_id, friend_id, request.token)
+            return Response({"message": "Friend deleted successfully"}, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except NotFound as e:
+            return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)

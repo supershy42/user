@@ -13,4 +13,4 @@ class FriendRequestCreateSerializer(serializers.ModelSerializer):
 class FriendshipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Friendship
-        fields = ['user1', 'user2', 'created_at']
+        fields = ['user1', 'user2', 'created_at', 'chatroom_id']
