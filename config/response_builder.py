@@ -24,12 +24,12 @@ def response_error(custom_validation_error:CustomValidationError):
     )
 
 def extract_status(errors):
-    for key, value in errors.items():
-        if key == "status":
-            if isinstance(value, ErrorDetail):
-                return str(value)
-            elif isinstance(value, list) and isinstance(value[0], ErrorDetail):
-                return str(value[0])
-        elif isinstance(value, dict):  # 중첩된 dict 처리
-            return extract_status(value)  # 재귀 호출
-    return None
+    if isinstance(errors, dict):
+        for key, value in errors.items():
+            if key == "status" and isinstance(value, str) and value.isdigit():
+                return int(value)
+            elif isinstance(value, dict):
+                nested_status = extract_status(value)
+                if nested_status:
+                    return nested_status
+    return status.HTTP_400_BAD_REQUEST
