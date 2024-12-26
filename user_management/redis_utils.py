@@ -1,6 +1,7 @@
 import redis.asyncio as redis
+from django.conf import settings
 
-redis_client = redis.Redis(host='localhost', port=6379, db=0)
+redis_client = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
 
 ONLINE_USERS_KEY = 'online_users'
 USER_CHANNELS_KEY = 'user_channels'

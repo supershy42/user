@@ -1,17 +1,30 @@
 from pathlib import Path
-import environ
 import os
+from decouple import config # ENV
 
-# .env 파일 경로 설정
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+# ENV
+SECRET_KEY = config("SECRET_KEY")
+DEBUG = config("DEBUG", default=False, cast=bool)
+
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_PORT = config("EMAIL_PORT", cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+
+CHAT_SERVICE_URL = config("CHAT_SERVICE_URL")
+
+REDIS_HOST = config('REDIS_HOST')
+REDIS_PORT = config('REDIS_PORT', cast=int)
+REDIS_DB = config('REDIS_DB', cast=int)
+REDIS_CAPACITY = config('REDIS_CAPACITY', cast=int)
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-!t=@_!d3#^gs9gu_nu+@2!b@yt9#9=*_n0su0s+(t6a-g-0rr*'
+SECRET_KEY = SECRET_KEY
 
-DEBUG = True
+DEBUG = DEBUG
 
 ALLOWED_HOSTS = []
 
@@ -28,12 +41,10 @@ INSTALLED_APPS = [
     'user_management',
     'friend',
     'drf_spectacular',
-    'corsheaders',
     'channels',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'config.middleware.CustomHttpMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -98,7 +109,7 @@ TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -112,11 +123,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # email 설정
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_HOST = EMAIL_HOST
+EMAIL_PORT = EMAIL_PORT
+EMAIL_USE_TLS = EMAIL_USE_TLS
+EMAIL_HOST_USER = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Default User 모델 설정
@@ -131,15 +142,8 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],  # Redis 서버 주소
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
+            "capacity": REDIS_CAPACITY, # 메시지 큐 용량
         },
     },
 }
-
-# CORS
-CORS_ALLOW_ALL_ORIGINS = True
-
-# ENV
-from decouple import config
-
-CHAT_SERVICE_URL = config("CHAT_SERVICE_URL")
