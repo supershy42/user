@@ -53,6 +53,14 @@ class UserProfileView(APIView):
         user = get_object_or_404(User, id=user_id)
         serializer = UserProfileSerializer(user)
         return response_ok(serializer.data)
+
+    def put(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        serializer = UserProfileSerializer(user, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return response_ok(serializer.data)
+        return response_errors(errors=serializer.errors)
     
 
 class SendEmailView(APIView):
