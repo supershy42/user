@@ -110,13 +110,12 @@ def delete_friend(user_id, friend_id, token):
     except User.DoesNotExist:
         raise NotFound("User not found.")
 
-    friendship = Friendship.objects.filter(Q(user1=user, user2=friend) | Q(user1=friend, user2=user))
-    if not friendship.exists():
+    try:
+        friendship = Friendship.objects.get(Q(user1=user, user2=friend) | Q(user1=friend, user2=user))
+    except Friendship.DoesNotExist:
         raise ValidationError("You are not friends.")
-
-    friendrequest = FriendRequest.objects.filter(Q(from_user=user, to_user=friend) | Q(from_user=friend, to_user=user))
-    if friendrequest.exists():
-        friendrequest.delete()
+    
+    FriendRequest.objects.filter(Q(from_user=user, to_user=friend) | Q(from_user=friend, to_user=user)).delete()
 
     # ChatRoom 삭제 API 호출
     is_chatroom_deleted = async_to_sync(delete_chatroom)(friendship.chatroom_id, token)
