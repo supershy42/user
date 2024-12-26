@@ -4,7 +4,7 @@ from config.custom_validation_error import CustomValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import check_password
 from .models import User, EmailVerificationCode
-from .services import process_email_verification_code
+from .services import MailService
 from config.error_type import ErrorType
 
 
@@ -27,7 +27,7 @@ class EmailCheckAndSendCodeSerializer(serializers.Serializer):
     
     def save(self):
         email = self.validated_data['email']
-        process_email_verification_code(email)
+        MailService.process_email_verification_code(email)
 
 
 class UserRegisterSerializer(serializers.Serializer):
