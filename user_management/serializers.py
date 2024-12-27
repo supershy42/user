@@ -67,9 +67,28 @@ class VerifyCodeSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = ['id', 'email', 'nickname', 'avatar']
+        read_only_fields = ['id', 'email']
+
+    def get_avatar(self, obj):
+        if obj.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+            return obj.avatar.url
+        return None
+
+    def update(self, instance, validated_data):
+        instance.nickname = validated_data.get('nickname', instance.nickname)
+        avatar_file = self.context['request'].FILES.get('avatar')
+        if avatar_file:
+            instance.avatar = avatar_file
+        instance.save()
+        return instance
         
 
 class FriendSerializer(serializers.ModelSerializer):

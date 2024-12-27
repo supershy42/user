@@ -27,7 +27,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     nickname = models.CharField(max_length=30, unique=True)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png')
     is_staff = models.BooleanField(default=False)
     is_2fa_enabled = models.BooleanField(default=False)
 

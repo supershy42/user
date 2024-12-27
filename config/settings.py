@@ -24,9 +24,8 @@ REDIS_CAPACITY = config('REDIS_CAPACITY', cast=int)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = SECRET_KEY
-
-DEBUG = DEBUG
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 ALLOWED_HOSTS = []
 
