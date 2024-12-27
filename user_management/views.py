@@ -53,8 +53,8 @@ class UserLoginView(APIView):
                     "message": "2FA_REQUIRED",
                     "email": email
                 }, status=status.HTTP_202_ACCEPTED)
-            jwt = AuthService.generate_jwt_tokens(user)
-            return response_ok(jwt)
+            data = AuthService.generate_token_with_user(user)
+            return response_ok(data)
         return response_errors(errors=serializer.errors)
     
     
@@ -66,8 +66,8 @@ class VerifyCodeView(APIView):
             code = serializer.validated_data['code']
             try:
                 user = AuthService.verify_user_email_code(email, code)
-                token = AuthService.generate_jwt_tokens(user)
-                return response_ok(token)
+                data = AuthService.generate_token_with_user(user)
+                return response_ok(data)
             except CustomValidationError as e:
                 return response_error(e)
         return response_errors(serializer.errors)

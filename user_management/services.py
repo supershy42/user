@@ -52,6 +52,17 @@ class AuthService:
         return user
     
     @staticmethod
+    def generate_token_with_user(user):
+        jwt = AuthService.generate_jwt_tokens(user)
+        from .serializers import UserProfileSerializer
+        user_detail = UserProfileSerializer(user).data
+        
+        return {
+            **jwt,
+            **user_detail
+        }
+    
+    @staticmethod
     def generate_jwt_tokens(user):
         refresh = RefreshToken.for_user(user)
         return {
