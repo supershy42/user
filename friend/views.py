@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from .services import (
     send_friend_request,
     respond_to_friend_request,
+    get_received_friend_requests,
     get_friends_list,
     delete_friend
 )
@@ -43,6 +44,24 @@ class RespondToFriendRequestView(APIView):
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except NotFound as e:
             return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ReceivedFriendRequestListView(APIView):
+    def get(self, request):
+        try:
+            user_id = request.user_id
+            friend_requests = get_received_friend_requests(user_id)
+
+            requests = [
+                {
+                    "from_user": friend_request["from_user__nickname"],
+                    "created_at": friend_request["created_at"].isoformat(),
+				}
+                for friend_request in friend_requests
+			]
+            return Response(requests, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FriendListView(APIView):
