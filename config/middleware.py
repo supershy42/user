@@ -10,6 +10,7 @@ EXCLUDED_PATHS = [
             '/api/user/register/nickname-check/',
             '/api/user/register/complete/',
             '/api/user/login/',
+            '/api/user/2fa/'
 ]
 
 # HTTP Middleware

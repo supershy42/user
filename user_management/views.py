@@ -5,12 +5,13 @@ from .serializers import (
     NicknameCheckSerializer,
     UserRegisterSerializer,
     UserLoginSerializer,
-    UserProfileSerializer
+    UserProfileSerializer,
+    VerifyCodeSerializer
     )
 from config.response_builder import response_ok, response_error, response_errors
 from .models import User
 from rest_framework import status
-from .services import MailService
+from .services import MailService, AuthService
 from config.custom_validation_error import CustomValidationError
 
 class NicknameCheckView(APIView):
@@ -43,9 +44,33 @@ class UserLoginView(APIView):
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
-            auth_data = serializer.save()
-            return response_ok(auth_data)
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+            user = AuthService.authenticate_user(email, password)
+            if user.is_2fa_enabled:
+                AuthService.process_email_verification_code(email)
+                return response_ok({
+                    "message": "2FA_REQUIRED",
+                    "email": email
+                }, status=status.HTTP_202_ACCEPTED)
+            jwt = AuthService.generate_jwt_tokens(user)
+            return response_ok(jwt)
         return response_errors(errors=serializer.errors)
+    
+    
+class VerifyCodeView(APIView):
+    def post(self, request):
+        serializer = VerifyCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            code = serializer.validated_data['code']
+            try:
+                user = AuthService.verify_user_email_code(email, code)
+                token = AuthService.generate_jwt_tokens(user)
+                return response_ok(token)
+            except CustomValidationError as e:
+                return response_error(e)
+        return response_errors(serializer.errors)
 
 
 class UserProfileView(APIView):

@@ -29,6 +29,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     nickname = models.CharField(max_length=30, unique=True)
     avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png')
     is_staff = models.BooleanField(default=False)
+    is_2fa_enabled = models.BooleanField(default=False)
 
     objects = UserManager()
 

@@ -1,11 +1,9 @@
 from rest_framework import serializers
-from rest_framework_simplejwt.tokens import RefreshToken
 from config.custom_validation_error import CustomValidationError
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.auth.hashers import check_password
-from .models import User, EmailVerificationCode
-from .services import MailService
+from .models import User
 from config.error_type import ErrorType
+from .services import AuthService
 
 
 class NicknameCheckSerializer(serializers.Serializer):
@@ -27,7 +25,7 @@ class EmailCheckAndSendCodeSerializer(serializers.Serializer):
     
     def save(self):
         email = self.validated_data['email']
-        MailService.process_email_verification_code(email)
+        AuthService.process_email_verification_code(email)
 
 
 class UserRegisterSerializer(serializers.Serializer):
@@ -40,12 +38,7 @@ class UserRegisterSerializer(serializers.Serializer):
         email = attrs.get('email')
         code = attrs.get('code')
         
-        try:
-            verification_record = EmailVerificationCode.objects.get(email=email, code=code)
-        except EmailVerificationCode.DoesNotExist:
-            raise CustomValidationError(ErrorType.INVALID_VERIFICATION_CODE)
-        if verification_record.is_expired:
-            raise CustomValidationError(ErrorType.VERIFICATION_CODE_EXPIRED)
+        verification_record = AuthService.verify_email_code(email, code)
 
         attrs['verification_record'] = verification_record
         return attrs
@@ -67,31 +60,10 @@ class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
-    def validate(self, attrs):
-        email = attrs.get('email')
-        password = attrs.get('password')
 
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise CustomValidationError(ErrorType.INVALID_CREDENTIALS)
-
-        if not check_password(password, user.password):
-            raise CustomValidationError(ErrorType.INVALID_CREDENTIALS)
-
-        attrs['user'] = user
-        return attrs
-
-
-    def save(self, **kwargs):
-        user = self.validated_data['user']
-
-        # JWT 토큰 생성
-        refresh = RefreshToken.for_user(user)
-        return {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
+class VerifyCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(write_only=True)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
