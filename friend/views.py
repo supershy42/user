@@ -14,9 +14,14 @@ from .services import (
 
 class SendFriendRequestView(APIView):
     def post(self, request):
-        to_user_id = request.data.get('to_user_id')
+        nickname = request.data.get('nickname')
+        if not nickname:
+            return Response(
+                {"message": "The 'nickname' field is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         try:
-            async_to_sync(send_friend_request)(request.user_id, to_user_id)
+            async_to_sync(send_friend_request)(request.user_id, nickname)
             return Response({"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED)
         except ValidationError as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -16,7 +16,7 @@ async def get_chatroom(user1_id, user2_id, token):
 
 # 채팅 서비스의 채팅방 삭제 API 호출
 async def delete_chatroom(chatroom_id, token):
-    request_url = f'{CHAT_SERVICE}delete/'
+    request_url = f'{CHAT_SERVICE_URL}delete/'
     headers = {'Authorization': f'Bearer {token}'}
     payload = {"chatroom_id": chatroom_id}
     

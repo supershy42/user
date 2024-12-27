@@ -13,10 +13,10 @@ from django.db import transaction
 User = get_user_model()
 
 # 친구 요청 전송
-async def send_friend_request(from_user_id, to_user_id):
+async def send_friend_request(from_user_id, nickname):
     try:
         from_user = await User.objects.aget(id=from_user_id)
-        to_user = await User.objects.aget(id=to_user_id)
+        to_user = await User.objects.aget(nickname=nickname)
     except User.DoesNotExist:
         raise NotFound("User not found.")
 
@@ -30,7 +30,7 @@ async def send_friend_request(from_user_id, to_user_id):
         raise ValidationError("You are already friends.")
 
     friend_request = await FriendRequest.objects.acreate(from_user=from_user, to_user=to_user, status="pending")
-    await send_friend_request_notification(from_user_id, to_user_id, friend_request.created_at)
+    await send_friend_request_notification(from_user_id, to_user.id, friend_request.created_at)
 
 
 # 친구 요청 알림 전송
@@ -110,13 +110,12 @@ def delete_friend(user_id, friend_id, token):
     except User.DoesNotExist:
         raise NotFound("User not found.")
 
-    friendship = Friendship.objects.filter(Q(user1=user, user2=friend) | Q(user1=friend, user2=user))
-    if not friendship.exists():
+    try:
+        friendship = Friendship.objects.get(Q(user1=user, user2=friend) | Q(user1=friend, user2=user))
+    except Friendship.DoesNotExist:
         raise ValidationError("You are not friends.")
-
-    friendrequest = FriendRequest.objects.filter(Q(from_user=user, to_user=friend) | Q(from_user=friend, to_user=user))
-    if friendrequest.exists():
-        friendrequest.delete()
+    
+    FriendRequest.objects.filter(Q(from_user=user, to_user=friend) | Q(from_user=friend, to_user=user)).delete()
 
     # ChatRoom 삭제 API 호출
     is_chatroom_deleted = async_to_sync(delete_chatroom)(friendship.chatroom_id, token)
