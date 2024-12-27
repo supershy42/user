@@ -13,10 +13,10 @@ from django.db import transaction
 User = get_user_model()
 
 # 친구 요청 전송
-async def send_friend_request(from_user_id, to_user_id):
+async def send_friend_request(from_user_id, nickname):
     try:
         from_user = await User.objects.aget(id=from_user_id)
-        to_user = await User.objects.aget(id=to_user_id)
+        to_user = await User.objects.aget(nickname=nickname)
     except User.DoesNotExist:
         raise NotFound("User not found.")
 
@@ -30,7 +30,7 @@ async def send_friend_request(from_user_id, to_user_id):
         raise ValidationError("You are already friends.")
 
     friend_request = await FriendRequest.objects.acreate(from_user=from_user, to_user=to_user, status="pending")
-    await send_friend_request_notification(from_user_id, to_user_id, friend_request.created_at)
+    await send_friend_request_notification(from_user_id, to_user.id, friend_request.created_at)
 
 
 # 친구 요청 알림 전송
