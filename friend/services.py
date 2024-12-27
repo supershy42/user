@@ -58,7 +58,7 @@ def respond_to_friend_request(request_id, action, token):
         friend_request = FriendRequest.objects.get(id=request_id, status="pending")
     except FriendRequest.DoesNotExist:
         raise NotFound("Friend request not found.")
-    
+
     if action not in ["accept", "reject"]:
         raise ValidationError("Invalid action.")
 
@@ -80,7 +80,7 @@ def respond_to_friend_request(request_id, action, token):
             )
             if chatroom_data is None:
                 raise ValidationError("Chatroom creation failed.")
-            
+
             # ChatRoom ID 저장
             friendship.chatroom_id = chatroom_data['id']
             friendship.save()
@@ -88,6 +88,14 @@ def respond_to_friend_request(request_id, action, token):
         elif action == "reject":
             friend_request.status = "rejected"
             friend_request.save()
+
+
+# 친구 요청 조회
+def get_received_friend_requests(user_id):
+    return FriendRequest.objects.filter(
+        to_user_id = user_id,
+        status = "pending"
+	).values("from_user__nickname", "created_at")
 
 
 # 친구 리스트 조회
@@ -114,7 +122,7 @@ def delete_friend(user_id, friend_id, token):
         friendship = Friendship.objects.get(Q(user1=user, user2=friend) | Q(user1=friend, user2=user))
     except Friendship.DoesNotExist:
         raise ValidationError("You are not friends.")
-    
+
     FriendRequest.objects.filter(Q(from_user=user, to_user=friend) | Q(from_user=friend, to_user=user)).delete()
 
     # ChatRoom 삭제 API 호출
