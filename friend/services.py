@@ -31,11 +31,11 @@ class FriendService:
             raise CustomValidationError(ErrorType.ALREADY_FRIENDS)
 
         friend_request = await FriendRequest.objects.acreate(from_user=from_user, to_user=to_user, status="pending")
-        await FriendService.send_friend_request_notification(from_user_id, to_user.id, friend_request.created_at)
+        await FriendService.send_friend_request_notification(from_user_id, to_user.id, friend_request.id, friend_request.created_at)
 
 
     @staticmethod
-    async def send_friend_request_notification(from_user_id, to_user_id, created_at):
+    async def send_friend_request_notification(from_user_id, to_user_id, friend_request_id, created_at):
         channel_layer = get_channel_layer()
         channel_name = await get_channel_name(to_user_id)
         if not channel_name:
@@ -47,6 +47,7 @@ class FriendService:
             channel_name,
             {
                 "type": "friend.request",
+                "friend_request_id": friend_request_id,
                 "sender": sender,
                 "created_at": created_at_str
             }
