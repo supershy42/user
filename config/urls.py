@@ -1,5 +1,7 @@
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
@@ -8,3 +10,7 @@ urlpatterns = [
     path('api/user/', include('user_management.urls')),
     path('api/friend/', include('friend.urls')),
 ]
+
+# 개발 환경에서만 미디어 파일 서빙
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
