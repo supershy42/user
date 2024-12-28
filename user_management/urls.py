@@ -1,6 +1,4 @@
 from django.urls import path
-from django.conf import settings
-from django.conf.urls.static import static
 from .views import (
     EmailCheckAndSendCodeView,
     NicknameCheckView,
@@ -22,7 +20,3 @@ urlpatterns = [
     path('send-email/', SendEmailView.as_view(), name='send-email'),
     path('2fa/', VerifyCodeView.as_view(), name='2fa')
 ]
-
-# 개발 환경에서만 미디어 파일 서빙
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
