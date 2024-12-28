@@ -4,13 +4,7 @@ from rest_framework.exceptions import ValidationError, NotFound
 from drf_spectacular.utils import extend_schema
 from asgiref.sync import async_to_sync
 from rest_framework.views import APIView
-from .services import (
-    send_friend_request,
-    respond_to_friend_request,
-    get_received_friend_requests,
-    get_friends_list,
-    delete_friend
-)
+from .services import FriendService
 
 
 class SendFriendRequestView(APIView):
@@ -22,7 +16,7 @@ class SendFriendRequestView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            async_to_sync(send_friend_request)(request.user_id, nickname)
+            async_to_sync(FriendService.send_friend_request)(request.user_id, nickname)
             return Response({"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED)
         except ValidationError as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -35,7 +29,7 @@ class RespondToFriendRequestView(APIView):
         friend_request_id = request.data.get('friend_request_id')
         action = request.data.get('action')
         try:
-            respond_to_friend_request(friend_request_id, action, request.token)
+            FriendService.respond_to_friend_request(friend_request_id, action, request.token)
             return Response(
                 {"message": f"Friend request {action}ed"},
                 status=status.HTTP_200_OK
@@ -50,7 +44,7 @@ class ReceivedFriendRequestListView(APIView):
     def get(self, request):
         try:
             user_id = request.user_id
-            friend_requests = get_received_friend_requests(user_id)
+            friend_requests = FriendService.get_received_friend_requests(user_id)
 
             requests = [
                 {
@@ -74,7 +68,7 @@ class FriendListView(APIView):
         },
     )
     def get(self, request):
-        friends = get_friends_list(request.user)
+        friends = FriendService.get_friends_list(request.user)
         if friends is None:
             return Response(
                 {"message": "Friends list is not initialized or unavailable."},
@@ -87,7 +81,7 @@ class DeleteFriendView(APIView):
     def post(self, request):
         friend_id = request.data.get('friend_id')
         try:
-            delete_friend(request.user_id, friend_id, request.token)
+            FriendService.delete_friend(request.user_id, friend_id, request.token)
             return Response({"message": "Friend deleted successfully"}, status=status.HTTP_200_OK)
         except ValidationError as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
