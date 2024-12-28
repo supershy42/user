@@ -60,10 +60,10 @@ class FriendListView(APIView):
         },
     )
     def get(self, request):
-        friends = FriendService.get_friends_list(request.user)
+        friends = FriendService.get_friends_list(request.user_id)
         if friends is None:
             return response_errors(errors=CustomValidationError(ErrorType.FRIENDS_LIST_UNAVAILABLE))
-        return response_ok(data=friends)
+        return response_ok(friends)
 
 
 class DeleteFriendView(APIView):
