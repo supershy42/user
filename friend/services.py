@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from config.services import get_chatroom, delete_chatroom
+from config.services import get_chatroom, delete_chatroom, format_datetime
 from channels.layers import get_channel_layer
 from user_management.redis_utils import get_channel_name
 from asgiref.sync import async_to_sync
@@ -41,14 +41,14 @@ class FriendService:
         if not channel_name:
             return
 
-        sender = await UserService.get_user_name(from_user_id)
-        created_at_str = created_at.isoformat()
+        from_user = await UserService.get_user_name(from_user_id)
+        created_at_str = format_datetime(created_at)
         await channel_layer.send(
             channel_name,
             {
                 "type": "friend.request",
-                "friend_request_id": friend_request_id,
-                "sender": sender,
+                "id": friend_request_id,
+                "from_user": from_user,
                 "created_at": created_at_str
             }
         )

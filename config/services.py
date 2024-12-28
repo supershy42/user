@@ -1,5 +1,6 @@
 import aiohttp
 from config.settings import CHAT_SERVICE_URL
+from datetime import datetime
 
 # 채팅 서비스의 채팅방 생성 API 호출
 async def get_chatroom(user1_id, user2_id, token):
@@ -25,3 +26,8 @@ async def delete_chatroom(chatroom_id, token):
             if response.status == 204: # 채팅방 삭제 성공
                 return True
             return None
+        
+def format_datetime(dt):
+    if isinstance(dt, datetime):
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+    return dt
