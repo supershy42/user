@@ -10,13 +10,14 @@ EXCLUDED_PATHS = [
             '/api/user/register/nickname-check/',
             '/api/user/register/complete/',
             '/api/user/login/',
-            '/api/user/2fa/'
+            '/api/user/2fa/',
+            '/media/avatars/',
 ]
 
 # HTTP Middleware
 class CustomHttpMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        if request.path in EXCLUDED_PATHS:  # 제외된 경로 처리
+        if any(request.path.startswith(path) for path in EXCLUDED_PATHS):  # 제외된 경로 처리
             return
 
         token_line = request.headers.get("Authorization")
