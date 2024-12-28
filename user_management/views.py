@@ -73,19 +73,26 @@ class VerifyCodeView(APIView):
         return response_errors(serializer.errors)
 
 
+class MyProfileView(APIView):
+    def get(self, request):
+        user = get_object_or_404(User, id=request.user_id)
+        serializer = UserProfileSerializer(user)
+        return response_ok(serializer.data)
+
+    def put(self, request):
+        user = get_object_or_404(User, id=request.user_id)
+        serializer = UserProfileSerializer(user, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return response_ok(serializer.data)
+        return response_errors(errors=serializer.errors) 
+
+
 class UserProfileView(APIView):
     def get(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         serializer = UserProfileSerializer(user)
         return response_ok(serializer.data)
-
-    def put(self, request, user_id):
-        user = get_object_or_404(User, id=user_id)
-        serializer = UserProfileSerializer(user, data=request.data, partial=True, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return response_ok(serializer.data)
-        return response_errors(errors=serializer.errors)
     
 
 class SendEmailView(APIView):

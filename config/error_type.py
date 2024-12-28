@@ -15,7 +15,7 @@ class ErrorType(Enum):
     INVALID_EMAIL_REQUEST = (status.HTTP_400_BAD_REQUEST, "The email sending request is invalid.")
 
     # common
-    FIELD_REQUIRED = (status.HTTP_400_BAD_REQUEST, "The field is required.")
+    FIELD_REQUIRED = (status.HTTP_400_BAD_REQUEST, "The nickname field is required.")
 
     # friend
     FRIEND_REQUEST_ALREADY_EXISTS = (status.HTTP_409_CONFLICT, "Friend request already exists or received.")
