@@ -8,6 +8,7 @@ from .views import (
     SendEmailView,
     VerifyCodeView,
     MyProfileView,
+    SearchUserView
 )
 
 urlpatterns = [
@@ -18,5 +19,6 @@ urlpatterns = [
     path('profile/', MyProfileView.as_view(), name='my-profile'),
     path('profile/<int:user_id>/', UserProfileView.as_view(), name='user-profile'),
     path('send-email/', SendEmailView.as_view(), name='send-email'),
-    path('2fa/', VerifyCodeView.as_view(), name='2fa')
+    path('2fa/', VerifyCodeView.as_view(), name='2fa'),
+    path('search/', SearchUserView.as_view(), name='search'),
 ]
