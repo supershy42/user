@@ -9,6 +9,9 @@ def response_ok(message="ok", status=status.HTTP_200_OK):
     return Response(message, status=status)
 
 def response_errors(errors):
+    if isinstance(errors, CustomValidationError):
+        return Response(errors.errors, status=errors.error_type.status)
+
     if not errors:
         errors = "unknown error."
     return Response(
