@@ -1,14 +1,14 @@
-from .models import FriendRequest, Friendship
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import ValidationError, NotFound
 from django.db.models import Q
 from config.services import get_chatroom, delete_chatroom
 from channels.layers import get_channel_layer
 from user_management.redis_utils import get_channel_name
-from user_management.services import UserService
 from asgiref.sync import async_to_sync
 from django.db import transaction
-
+from .models import FriendRequest, Friendship
+from user_management.services import UserService
+from config.custom_validation_error import CustomValidationError
+from config.error_type import ErrorType
 
 User = get_user_model()
 
@@ -19,16 +19,16 @@ class FriendService:
             from_user = await User.objects.aget(id=from_user_id)
             to_user = await User.objects.aget(nickname=nickname)
         except User.DoesNotExist:
-            raise NotFound("User not found.")
+            raise CustomValidationError(ErrorType.USER_NOT_FOUND)
 
         if from_user == to_user:
-            raise ValidationError("You cannot send a friend request to yourself.")
+            raise CustomValidationError(ErrorType.SELF_FRIEND_REQUEST)
 
         if await FriendRequest.objects.filter(Q(from_user=from_user, to_user=to_user) | Q(from_user=to_user, to_user=from_user)).aexists():
-            raise ValidationError("Friend request already exists or received.")
+            raise CustomValidationError(ErrorType.FRIEND_REQUEST_ALREADY_EXISTS)
 
         if await Friendship.objects.filter(Q(user1=from_user, user2=to_user) | Q(user1=to_user, user2=from_user)).aexists():
-            raise ValidationError("You are already friends.")
+            raise CustomValidationError(ErrorType.ALREADY_FRIENDS)
 
         friend_request = await FriendRequest.objects.acreate(from_user=from_user, to_user=to_user, status="pending")
         await FriendService.send_friend_request_notification(from_user_id, to_user.id, friend_request.created_at)
@@ -39,7 +39,7 @@ class FriendService:
         channel_layer = get_channel_layer()
         channel_name = await get_channel_name(to_user_id)
         if not channel_name:
-            raise ValidationError("User is not online.")
+            return
 
         sender = await UserService.get_user_name(from_user_id)
         created_at_str = created_at.isoformat()
@@ -58,10 +58,10 @@ class FriendService:
         try:
             friend_request = FriendRequest.objects.get(id=request_id, status="pending")
         except FriendRequest.DoesNotExist:
-            raise NotFound("Friend request not found.")
+            raise CustomValidationError(ErrorType.FRIEND_REQUEST_NOT_FOUND)
 
         if action not in ["accept", "reject"]:
-            raise ValidationError("Invalid action.")
+            raise CustomValidationError(ErrorType.VALIDATION_ERROR)
 
         with transaction.atomic():
             if action == "accept":
@@ -80,7 +80,7 @@ class FriendService:
                     token
                 )
                 if chatroom_data is None:
-                    raise ValidationError("Chatroom creation failed.")
+                    raise CustomValidationError(ErrorType.CHATROOM_CREATION_FAILED)
 
                 # ChatRoom ID 저장
                 friendship.chatroom_id = chatroom_data['id']
@@ -117,18 +117,18 @@ class FriendService:
             user = User.objects.get(id=user_id)
             friend = User.objects.get(id=friend_id)
         except User.DoesNotExist:
-            raise NotFound("User not found.")
+            raise CustomValidationError(ErrorType.USER_NOT_FOUND)
 
         try:
             friendship = Friendship.objects.get(Q(user1=user, user2=friend) | Q(user1=friend, user2=user))
         except Friendship.DoesNotExist:
-            raise ValidationError("You are not friends.")
+            raise CustomValidationError(ErrorType.FRIENDSHIP_NOT_FOUND)
 
         FriendRequest.objects.filter(Q(from_user=user, to_user=friend) | Q(from_user=friend, to_user=user)).delete()
 
         # ChatRoom 삭제 API 호출
         is_chatroom_deleted = async_to_sync(delete_chatroom)(friendship.chatroom_id, token)
         if not is_chatroom_deleted:
-            raise ValidationError("Chatroom deletion failed.")
+            raise CustomValidationError(ErrorType.CHATROOM_DELETION_FAILED)
 
         friendship.delete()

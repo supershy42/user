@@ -5,23 +5,20 @@ from drf_spectacular.utils import extend_schema
 from asgiref.sync import async_to_sync
 from rest_framework.views import APIView
 from .services import FriendService
-
+from config.response_builder import response_ok, response_errors
+from config.custom_validation_error import CustomValidationError
+from config.error_type import ErrorType
 
 class SendFriendRequestView(APIView):
     def post(self, request):
         nickname = request.data.get('nickname')
         if not nickname:
-            return Response(
-                {"message": "The 'nickname' field is required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return response_errors(errors=CustomValidationError(ErrorType.FIELD_REQUIRED))
         try:
             async_to_sync(FriendService.send_friend_request)(request.user_id, nickname)
-            return Response({"message": "Friend request sent successfully"}, status=status.HTTP_201_CREATED)
-        except ValidationError as e:
-            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except NotFound as e:
-            return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            return response_ok(status=status.HTTP_201_CREATED)
+        except CustomValidationError as e:
+            return response_errors(errors=e)
 
 
 class RespondToFriendRequestView(APIView):
@@ -30,14 +27,9 @@ class RespondToFriendRequestView(APIView):
         action = request.data.get('action')
         try:
             FriendService.respond_to_friend_request(friend_request_id, action, request.token)
-            return Response(
-                {"message": f"Friend request {action}ed"},
-                status=status.HTTP_200_OK
-            )
-        except ValidationError as e:
-            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except NotFound as e:
-            return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            return response_ok({"message": f"Friend request {action}ed"})
+        except CustomValidationError as e:
+            return response_errors(errors=e)
 
 
 class ReceivedFriendRequestListView(APIView):
@@ -53,9 +45,9 @@ class ReceivedFriendRequestListView(APIView):
 				}
                 for friend_request in friend_requests
 			]
-            return Response(requests, status=status.HTTP_200_OK)
-        except ValidationError as e:
-            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return response_ok(data=requests)
+        except CustomValidationError as e:
+            return response_errors(errors=e)
 
 
 class FriendListView(APIView):
@@ -70,11 +62,8 @@ class FriendListView(APIView):
     def get(self, request):
         friends = FriendService.get_friends_list(request.user)
         if friends is None:
-            return Response(
-                {"message": "Friends list is not initialized or unavailable."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        return Response(friends, status=status.HTTP_200_OK)
+            return response_errors(errors=CustomValidationError(ErrorType.FRIENDS_LIST_UNAVAILABLE))
+        return response_ok(data=friends)
 
 
 class DeleteFriendView(APIView):
@@ -82,8 +71,6 @@ class DeleteFriendView(APIView):
         friend_id = request.data.get('friend_id')
         try:
             FriendService.delete_friend(request.user_id, friend_id, request.token)
-            return Response({"message": "Friend deleted successfully"}, status=status.HTTP_200_OK)
-        except ValidationError as e:
-            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except NotFound as e:
-            return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            return response_ok()
+        except CustomValidationError as e:
+            return response_errors(errors=e)
