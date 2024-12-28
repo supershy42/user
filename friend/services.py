@@ -99,18 +99,27 @@ class FriendService:
             status = "pending"
         ).values("from_user__nickname", "created_at")
 
-
     @staticmethod
-    def get_friends_list(user):
+    def get_friends_list(user_id):
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return
         friendships = Friendship.objects.filter(Q(user1=user) | Q(user2=user)).select_related('user1', 'user2')
-        return [
-            {
-                "id": friendship.user1.id if friendship.user2 == user else friendship.user2.id,
-                "nickname": friendship.user1.nickname if friendship.user2 == user else friendship.user2.nickname,
+        friends_list = []
+        for friendship in friendships:
+            friend_user = friendship.user1 if friendship.user2 == user else friendship.user2
+            is_online = async_to_sync(get_channel_name)(friend_user.id) is not None
+            friend_detail = {
+                "frend_id": friend_user.id,
+                "nickname": friend_user.nickname,
+                "avatar": friend_user.avatar.url,
+                "chatroom_id": friendship.chatroom_id,
+                "is_online": is_online,
             }
-            for friendship in friendships
-        ]
-
+            friends_list.append(friend_detail)
+            
+        return friends_list
 
     @staticmethod
     def delete_friend(user_id, friend_id, token):
