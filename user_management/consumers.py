@@ -36,26 +36,15 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         )
 
     async def receive(self, text_data):
-        # WebSocket 클라이언트로부터 메시지 수신
-        try:
-            data = json.loads(text_data)
-        except json.JSONDecodeError:
-            await self.send(json.dumps({'error': 'Invalid JSON format'}))
-            return
-
-        notification_type = data.get('type')
-        content = data.get('content')
-
-        # 알림 타입별 처리
-        if notification_type in ['friend_request', 'game_invitation']:
-            await self.broadcast_message(notification_type, content)
-        else:
-            self.send(json.dumps({'error': 'Invalid notification type'}))
+        pass
             
     async def reception_invitation(self, event):
         await self.send_json(event)
         
-    async def tournament_start(self, event):
+    async def tournament_round_start(self, event):
+        await self.send_json(event)
+        
+    async def tournament_end(self, event):
         await self.send_json(event)
 
     async def friend_request(self, event):

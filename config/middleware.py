@@ -3,18 +3,21 @@ import json
 from django.utils.deprecation import MiddlewareMixin
 from channels.middleware import BaseMiddleware
 from django.http import JsonResponse
+from urllib.parse import parse_qs
 
 EXCLUDED_PATHS = [
             '/api/user/register/email-check/',
             '/api/user/register/nickname-check/',
             '/api/user/register/complete/',
             '/api/user/login/',
+            '/api/user/2fa/',
+            '/media/avatars/',
 ]
 
 # HTTP Middleware
 class CustomHttpMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        if request.path in EXCLUDED_PATHS:  # 제외된 경로 처리
+        if any(request.path.startswith(path) for path in EXCLUDED_PATHS):  # 제외된 경로 처리
             return
 
         token_line = request.headers.get("Authorization")
@@ -34,11 +37,7 @@ class CustomHttpMiddleware(MiddlewareMixin):
 # Websocket Middleware
 class CustomWsMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
-        path = scope.get('path')
-        if path in EXCLUDED_PATHS:
-            return await super().__call__(scope, receive, send)
-                                    
-        token = get_jwt(scope['headers'])
+        token = get_jwt(scope)
         if not token:
             return await self.reject_request(send, "Authentication token missing.")
 
@@ -69,11 +68,8 @@ class CustomWsMiddleware(BaseMiddleware):
 
 
 # JWT 토큰 추출
-def get_jwt(headers):
-    auth_header = dict(headers).get(b'authorization')
-    if auth_header:
-        auth_header = auth_header.decode()
-        prefix, token = auth_header.split(' ')
-        if prefix.lower() == 'bearer':
-            return token
-    return None
+def get_jwt(scope):
+    query_string = scope.get('query_string', b'').decode()
+    query_params = parse_qs(query_string)
+    token = query_params.get('token', [None])[0]
+    return token
