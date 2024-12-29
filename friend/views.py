@@ -75,3 +75,27 @@ class DeleteFriendView(APIView):
             return response_ok()
         except CustomValidationError as e:
             return response_errors(errors=e)
+
+
+class BlockFriendView(APIView):
+    def post(self, request):
+        friend_id = request.data.get('friend_id')
+        if not friend_id:
+            return response_errors(errors=CustomValidationError(ErrorType.FIELD_REQUIRED))
+        try:
+            FriendService.block_friend(request.user_id, friend_id, request.token)
+            return response_ok()
+        except CustomValidationError as e:
+            return response_errors(errors=e)
+
+
+class UnblockFriendView(APIView):
+    def post(self, request):
+        friend_id = request.data.get('friend_id')
+        if not friend_id:
+            return response_errors(errors=CustomValidationError(ErrorType.FIELD_REQUIRED))
+        try:
+            FriendService.unblock_friend(request.user_id, friend_id)
+            return response_ok()
+        except CustomValidationError as e:
+            return response_errors(errors=e)

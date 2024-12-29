@@ -5,10 +5,11 @@ from channels.layers import get_channel_layer
 from user_management.redis_utils import get_channel_name
 from asgiref.sync import async_to_sync
 from django.db import transaction
-from .models import FriendRequest, Friendship
+from .models import FriendRequest, Friendship, Block
 from user_management.services import UserService
 from config.custom_validation_error import CustomValidationError
 from config.error_type import ErrorType
+from django.db.utils import IntegrityError
 
 User = get_user_model()
 
@@ -23,6 +24,10 @@ class FriendService:
 
         if from_user == to_user:
             raise CustomValidationError(ErrorType.SELF_FRIEND_REQUEST)
+
+        if await Block.objects.filter(blocker=to_user, blocked=from_user).aexists() or \
+            await Block.objects.filter(blocker=from_user, blocked=to_user).aexists():
+            raise CustomValidationError(ErrorType.FRIEND_REQUEST_BLOCKED)
 
         if await FriendRequest.objects.filter(Q(from_user=from_user, to_user=to_user) | Q(from_user=to_user, to_user=from_user)).aexists():
             raise CustomValidationError(ErrorType.FRIEND_REQUEST_ALREADY_EXISTS)
@@ -100,6 +105,7 @@ class FriendService:
             status = "pending"
         ).values("id", "from_user__nickname", "created_at")
 
+
     @staticmethod
     def get_friends_list(user_id):
         try:
@@ -122,6 +128,7 @@ class FriendService:
             
         return friends_list
 
+
     @staticmethod
     def delete_friend(user_id, friend_id, token):
         try:
@@ -143,3 +150,36 @@ class FriendService:
             raise CustomValidationError(ErrorType.CHATROOM_DELETION_FAILED)
 
         friendship.delete()
+
+
+    @staticmethod
+    def block_friend(user_id, friend_id, token):
+        try:
+            blocker = User.objects.get(id=user_id)
+            blocked = User.objects.get(id=friend_id)
+            Block.objects.create(blocker=blocker, blocked=blocked)
+            
+            FriendRequest.objects.filter(Q(from_user=blocker, to_user=blocked) | Q(from_user=blocked, to_user=blocker)).delete()
+            if Friendship.objects.filter(Q(user1=blocker, user2=blocked) | Q(user1=blocked, user2=blocker)).exists():
+                FriendService.delete_friend(user_id, friend_id, token)
+
+        except User.DoesNotExist:
+            raise CustomValidationError(ErrorType.USER_NOT_FOUND)
+        except IntegrityError:
+            raise CustomValidationError(ErrorType.BLOCK_ALREADY_EXISTS)
+        except CustomValidationError as e:
+            raise e
+
+
+    @staticmethod
+    def unblock_friend(user_id, friend_id):
+        try:
+            blocker = User.objects.get(id=user_id)
+            blocked = User.objects.get(id=friend_id)
+            Block.objects.get(blocker=blocker, blocked=blocked).delete()
+        except User.DoesNotExist:
+            raise CustomValidationError(ErrorType.USER_NOT_FOUND)
+        except Block.DoesNotExist:
+            raise CustomValidationError(ErrorType.BLOCK_NOT_FOUND)
+        except CustomValidationError as e:
+            raise e

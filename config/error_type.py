@@ -15,7 +15,7 @@ class ErrorType(Enum):
     INVALID_EMAIL_REQUEST = (status.HTTP_400_BAD_REQUEST, "The email sending request is invalid.")
 
     # common
-    FIELD_REQUIRED = (status.HTTP_400_BAD_REQUEST, "The nickname field is required.")
+    FIELD_REQUIRED = (status.HTTP_400_BAD_REQUEST, "some fields are missing.")
 
     # friend
     FRIEND_REQUEST_ALREADY_EXISTS = (status.HTTP_409_CONFLICT, "Friend request already exists or received.")
@@ -26,6 +26,9 @@ class ErrorType(Enum):
     FRIENDSHIP_NOT_FOUND = (status.HTTP_404_NOT_FOUND, "Friendship not found.")
     CHATROOM_DELETION_FAILED = (status.HTTP_500_INTERNAL_SERVER_ERROR, "Failed to delete the chatroom.")
     FRIENDS_LIST_UNAVAILABLE = (status.HTTP_404_NOT_FOUND, "Friends list is not initialized or unavailable.")
+    FRIEND_REQUEST_BLOCKED = (status.HTTP_403_FORBIDDEN, "Friend request blocked due to existing block relationship.")
+    BLOCK_ALREADY_EXISTS = (status.HTTP_409_CONFLICT, "Block relationship already exists.")
+    BLOCK_NOT_FOUND = (status.HTTP_404_NOT_FOUND, "Block relationship not found.")
     
     def __init__(self, status, message):
         self.status = status
