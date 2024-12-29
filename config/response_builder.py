@@ -1,6 +1,5 @@
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.exceptions import ErrorDetail
 from .custom_validation_error import CustomValidationError
 
 def response_ok(message="ok", status=status.HTTP_200_OK):

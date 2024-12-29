@@ -13,6 +13,7 @@ from .models import User
 from rest_framework import status
 from .services import MailService, AuthService
 from config.custom_validation_error import CustomValidationError
+from rest_framework.response import Response
 
 class NicknameCheckView(APIView):
     def post(self, request):
@@ -107,3 +108,17 @@ class SendEmailView(APIView):
         MailService.custom_send_email(email, subject, message)
         return response_ok()
         
+        
+class SearchUserView(APIView):
+    def get(self, request):
+        nickname = request.query_params.get('nickname')
+        if not nickname:
+            return Response({"message":"nickname param required."}, status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(nickname=nickname)
+        except User.DoesNotExist:
+            return Response({"messsage":"user not found."}, status.HTTP_404_NOT_FOUND)
+        
+        data = UserProfileSerializer(user).data
+        return response_ok(data)
