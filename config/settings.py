@@ -21,14 +21,12 @@ REDIS_PORT = config('REDIS_PORT', cast=int)
 REDIS_DB = config('REDIS_DB', cast=int)
 REDIS_CAPACITY = config('REDIS_CAPACITY', cast=int)
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ALLOWED_HOSTS = ['api-gateway', 'localhost', '127.0.0.1']
-
 
 # Application definition
 
