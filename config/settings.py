@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-!t=@_!d3#^gs9gu_nu+@2!b@yt9#9=*_n0su0s+(t6a-g-0rr*
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['api-gateway']
 
 
 # Application definition
