@@ -112,7 +112,7 @@ class FriendService:
             friend_user = friendship.user1 if friendship.user2 == user else friendship.user2
             is_online = async_to_sync(get_channel_name)(friend_user.id) is not None
             friend_detail = {
-                "frend_id": friend_user.id,
+                "friend_id": friend_user.id,
                 "nickname": friend_user.nickname,
                 "avatar": friend_user.avatar.url,
                 "chatroom_id": friendship.chatroom_id,
