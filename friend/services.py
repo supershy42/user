@@ -47,9 +47,11 @@ class FriendService:
             channel_name,
             {
                 "type": "friend.request",
-                "id": friend_request_id,
-                "from_user": from_user,
-                "created_at": created_at_str
+                "content": {
+                    "id": friend_request_id,
+                    "from_user": from_user,
+                    "created_at": created_at_str
+                }
             }
         )
 
@@ -97,7 +99,7 @@ class FriendService:
         return FriendRequest.objects.filter(
             to_user_id = user_id,
             status = "pending"
-        ).values("from_user__nickname", "created_at")
+        ).values("id", "from_user__nickname", "created_at")
 
     @staticmethod
     def get_friends_list(user_id):

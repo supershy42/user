@@ -40,12 +40,13 @@ class ReceivedFriendRequestListView(APIView):
 
             requests = [
                 {
+                    "id": friend_request["id"],
                     "from_user": friend_request["from_user__nickname"],
                     "created_at": friend_request["created_at"].isoformat(),
 				}
                 for friend_request in friend_requests
 			]
-            return response_ok(data=requests)
+            return response_ok(requests)
         except CustomValidationError as e:
             return response_errors(errors=e)
 
