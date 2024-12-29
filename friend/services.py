@@ -90,9 +90,8 @@ class FriendService:
                 friendship.save()
 
             elif action == "reject":
-                friend_request.status = "rejected"
-                friend_request.save()
-
+                friend_request.delete()                
+                
 
     @staticmethod
     def get_received_friend_requests(user_id):
