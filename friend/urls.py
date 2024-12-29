@@ -4,7 +4,9 @@ from .views import (
     RespondToFriendRequestView,
 	ReceivedFriendRequestListView,
     FriendListView,
-    DeleteFriendView
+    DeleteFriendView,
+    BlockFriendView,
+    UnblockFriendView
 )
 
 
@@ -13,5 +15,7 @@ urlpatterns = [
     path('respond/', RespondToFriendRequestView.as_view(), name='respond'),
 	path('received-requests/', ReceivedFriendRequestListView.as_view(), name='received-requests'),
     path('list/', FriendListView.as_view(), name='list'),
-    path('delete/', DeleteFriendView.as_view(), name='delete')
+    path('delete/', DeleteFriendView.as_view(), name='delete'),
+    path('block/', BlockFriendView.as_view(), name='block'),
+    path('unblock/', UnblockFriendView.as_view(), name='unblock')
 ]
