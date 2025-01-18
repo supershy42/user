@@ -8,7 +8,7 @@ urlpatterns = [
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path('api/user/', include('user_management.urls')),
-    path('api/friend/', include('friend.urls')),
+    path('api/user/friend/', include('friend.urls')),
 ]
 
 # 개발 환경에서만 미디어 파일 서빙
