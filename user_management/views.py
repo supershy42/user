@@ -6,7 +6,8 @@ from .serializers import (
     UserRegisterSerializer,
     UserLoginSerializer,
     UserProfileSerializer,
-    VerifyCodeSerializer
+    VerifyCodeSerializer,
+    UserWinLossSerializer
     )
 from config.response_builder import response_ok, response_error, response_errors
 from .models import User
@@ -14,6 +15,8 @@ from rest_framework import status
 from .services import MailService, AuthService
 from config.custom_validation_error import CustomValidationError
 from rest_framework.response import Response
+from django.db import transaction
+from config.error_type import ErrorType
 
 class NicknameCheckView(APIView):
     def post(self, request):
@@ -122,3 +125,25 @@ class SearchUserView(APIView):
         
         data = UserProfileSerializer(user).data
         return response_ok(data)
+
+
+class UpdateUserWinLossView(APIView):
+    @transaction.atomic
+    def put(self, request, user_id):
+        if user_id != request.user_id:
+            return response_error(ErrorType.PERMISSION_DENIED)
+
+        try:
+            user = User.objects.select_for_update().get(id=user_id)
+        except User.DoesNotExist:
+            return response_error(ErrorType.USER_NOT_FOUND)
+            
+        serializer = UserWinLossSerializer(instance=user, data=request.data)
+        if not serializer.is_valid():
+            return response_errors(serializer.errors)
+
+        serializer.save()
+        return response_ok({
+            "wins": user.wins,
+            "losses": user.losses
+        })
