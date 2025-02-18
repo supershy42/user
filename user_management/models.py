@@ -30,6 +30,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png')
     is_staff = models.BooleanField(default=False)
     is_2fa_enabled = models.BooleanField(default=False)
+    wins = models.PositiveIntegerField(default=0)
+    losses = models.PositiveIntegerField(default=0)
 
     objects = UserManager()
 
