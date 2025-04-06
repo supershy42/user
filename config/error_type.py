@@ -13,6 +13,7 @@ class ErrorType(Enum):
     USER_NOT_FOUND = (status.HTTP_404_NOT_FOUND, "User not found.")
     USER_ID_NOT_FOUND = (status.HTTP_400_BAD_REQUEST, "The user_id parameter is missing in the request URL.")
     INVALID_EMAIL_REQUEST = (status.HTTP_400_BAD_REQUEST, "The email sending request is invalid.")
+    PERMISSION_DENIED = (status.HTTP_403_FORBIDDEN, "You do not have permission to update win-loss.")
 
     # common
     FIELD_REQUIRED = (status.HTTP_400_BAD_REQUEST, "some fields are missing.")
