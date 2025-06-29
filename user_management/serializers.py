@@ -71,8 +71,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'nickname', 'avatar']
-        read_only_fields = ['id', 'email']
+        fields = ['id', 'email', 'nickname', 'avatar', 'wins', 'losses']
+        read_only_fields = ['id', 'email', 'wins', 'losses']
 
     def get_avatar(self, obj):
         if obj.avatar:
@@ -95,3 +95,15 @@ class FriendSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['nickname', 'is_online']
+
+
+class UserWinLossSerializer(serializers.Serializer):
+    is_win = serializers.BooleanField(required=True)
+    
+    def update(self, instance, validated_data):
+        if validated_data['is_win']:
+            instance.wins += 1
+        else:
+            instance.losses += 1
+        instance.save()
+        return instance
