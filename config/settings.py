@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ALLOWED_HOSTS = ['api-gateway', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['api-gateway', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -85,9 +85,9 @@ elif DATABASE_ENGINE == 'postgresql':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('POSTGRES_DB', default=''),
-            'USER': config('POSTGRES_USER', default=''),
-            'PASSWORD': config('POSTGRES_PASSWORD', default=''),
+            'NAME': config('DB_USER_NAME', default=''),
+            'USER': config('DB_USER_USER', default=''),
+            'PASSWORD': config('DB_USER_PASSWORD', default=''),
             'HOST': config('POSTGRES_HOST', default='localhost'),
             'PORT': config('POSTGRES_PORT', default='5432'),
         }
