@@ -50,7 +50,10 @@ class UserLoginView(APIView):
         if serializer.is_valid():
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
-            user = AuthService.authenticate_user(email, password)
+            try:
+                user = AuthService.authenticate_user(email, password)
+            except CustomValidationError as e:
+                return response_errors(errors=e)
             if user.is_2fa_enabled:
                 AuthService.process_email_verification_code(email)
                 return response_ok({
