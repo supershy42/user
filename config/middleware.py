@@ -12,6 +12,7 @@ EXCLUDED_PATHS = [
             '/api/user/login/',
             '/api/user/2fa/',
             '/media/avatars/',
+            '/api/schema/',
 ]
 
 # HTTP Middleware
