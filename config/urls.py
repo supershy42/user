@@ -11,6 +11,6 @@ urlpatterns = [
     path('api/user/friend/', include('friend.urls')),
 ]
 
-# 개발 환경에서만 미디어 파일 서빙
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# # 개발 환경에서만 미디어 파일 서빙
+# if settings.DEBUG:
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
